@@ -11,8 +11,6 @@ import Alamofire
 
 class ViewController: UIViewController {
     
-    let networkService = NetworkService.shared
-    
     public let textField = UITextField()
     
     private let urlButton = UIButton()
