@@ -1,20 +1,17 @@
 //
-//  ViewController.swift
+//  File.swift
 //  Kinobox
 //
 //  Created by Yosha Kun on 09.09.2023.
 //
 
+import Foundation
 import UIKit
 
-class ViewController: UIViewController {
-
+class SecondViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .red
+        view.backgroundColor = .green
     }
-
-
 }
-

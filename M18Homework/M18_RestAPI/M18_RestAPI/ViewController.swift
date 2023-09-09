@@ -15,7 +15,7 @@ class ViewController: UIViewController {
     
     private let urlButton = UIButton()
     private let alamofireButton = UIButton()
-    private let textView = UITextView()
+    public let textView = UITextView()
     
     private var mainStack = UIStackView()
     private var secondStack = UIStackView()
@@ -103,12 +103,16 @@ class ViewController: UIViewController {
     
     private func getURLRequest() {
         let query = textField.text ?? "форсаж"
+        let scheme = "https"
+        let host = "kinopoiskapiunofficial.tech"
+        let path = "/api/v2.1/films/search-by-keyword"
+        let keyWord = "keyword"
         
         var urlComponents = URLComponents()
-        urlComponents.scheme = "https"
-        urlComponents.host = "kinopoiskapiunofficial.tech"
-        urlComponents.path = "/api/v2.1/films/search-by-keyword"
-        let queryItems: [URLQueryItem] = [URLQueryItem(name: "keyword", value: query)]
+        urlComponents.scheme = scheme
+        urlComponents.host = host
+        urlComponents.path = path
+        let queryItems: [URLQueryItem] = [URLQueryItem(name: keyWord, value: query)]
         urlComponents.queryItems = queryItems
 
         guard let url = urlComponents.url else {
@@ -135,7 +139,7 @@ class ViewController: UIViewController {
                         let convertedString = String(data: data, encoding: .utf8)
                         print(convertedString ?? "Default value of JSON")
                         DispatchQueue.main.async {
-                        self.textView.text = convertedString
+                            self.textView.text = convertedString
                         }
                     }
                 }
