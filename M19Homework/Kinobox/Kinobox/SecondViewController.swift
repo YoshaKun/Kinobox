@@ -9,22 +9,54 @@ import Foundation
 import UIKit
 
 class SecondViewController: UIViewController {
+    // MARK: - Константы
     
-    var kinopoiskLabel = UILabel()
-    var rateKinopoLabel = UILabel()
-    var imdbLabel = UILabel()
-    var rateImdb = UILabel()
+    let kinopoiskLabel = UILabel()
+    let imdbLabel = UILabel()
     
-    var imageFilm = UIImageView()
+    // MARK: - Переменные для инициализатора
     
     var titleOfFilmRu = UILabel()
     var titleOfFilmEn = UILabel()
-    var descripFilmLabel = UILabel()
-    var yearOfFilm = UILabel()
-    var durationOfFilm = UILabel()
+    var imageFilm = UIImageView()
+    var rateKinopoisk = UILabel()
+    var rateImdb = UILabel()
+    var yearLabel = UILabel()
+    var lengthOfFilmLabel = UILabel()
+    var textView = UITextView()
+    
+    var imageUrl = String()
+    
+    // MARK: - StackViews
     
     var labelStackView = UIStackView()
     var mainStackView = UIStackView()
+    
+    // MARK: - Initialisator
+    
+    init(titleOfFilmRu: String?,
+         titleOfFilmEn: String?,
+         imageFilm: String?,
+         rateKinopoisk: Double?,
+         rateImdb: Double?,
+         yearLabel: Int?,
+         lengthOfFilmLabel: Int?,
+         descripFilmLabel: String?) {
+
+        self.titleOfFilmRu.text = titleOfFilmRu ?? "0"
+        self.titleOfFilmEn.text = titleOfFilmEn ?? "0"
+        self.imageUrl = imageFilm ?? "0"
+        self.rateKinopoisk.text = String(rateKinopoisk ?? 0)
+        self.rateImdb.text = String(rateImdb ?? 0)
+        self.yearLabel.text = "Год производства:\n\(yearLabel ?? 0)"
+        self.lengthOfFilmLabel.text = "Продолжительность:\n\(lengthOfFilmLabel ?? 0)"
+        self.textView.text = descripFilmLabel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,6 +66,7 @@ class SecondViewController: UIViewController {
         configureViews()
         configureStackViews()
         configureConstraints()
+        downloadingImageForSecondVC()
     }
     
     private func configureViews() {
@@ -41,46 +74,39 @@ class SecondViewController: UIViewController {
         kinopoiskLabel.text = "Kinopoisk"
         kinopoiskLabel.textColor = .black
         
-        rateKinopoLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        rateKinopoLabel.text = "рейтинг Kinopoisk"
-        rateKinopoLabel.textColor = .black
+        rateKinopoisk.font = .systemFont(ofSize: 16, weight: .semibold)
+        rateKinopoisk.textColor = .black
         
         imdbLabel.font = .systemFont(ofSize: 16, weight: .semibold)
         imdbLabel.text = "IMDB"
         imdbLabel.textColor = .black
         
         rateImdb.font = .systemFont(ofSize: 16, weight: .semibold)
-        rateImdb.text = "рейтинг IMDB"
         rateImdb.textColor = .black
         
         imageFilm.backgroundColor = .red
         
         titleOfFilmRu.font = .systemFont(ofSize: 24, weight: .bold)
-        titleOfFilmRu.text = "Название фильма RU"
         titleOfFilmRu.numberOfLines = 0
         titleOfFilmRu.textAlignment = .center
         titleOfFilmRu.textColor = .black
         
         titleOfFilmEn.font = .systemFont(ofSize: 16, weight: .semibold)
-        titleOfFilmEn.text = "Название фильма EN"
         titleOfFilmEn.numberOfLines = 0
         titleOfFilmEn.textAlignment = .center
         titleOfFilmEn.textColor = .systemGray
         
-        descripFilmLabel.font = .systemFont(ofSize: 18, weight: .semibold)
-        descripFilmLabel.text = "Описание фильма Описание фильма Описание фильма Описание фильма Описание фильма Описание фильма Описание фильма Описание фильма Описание фильма Описание фильма Описание фильма Описание фильма "
-        descripFilmLabel.numberOfLines = 0
-        descripFilmLabel.textColor = .black
+        textView.font = .systemFont(ofSize: 18, weight: .semibold)
+        textView.textColor = .black
+        textView.backgroundColor = .white
         
-        yearOfFilm.font = .systemFont(ofSize: 16, weight: .semibold)
-        yearOfFilm.text = "Год производства\nгод_"
-        yearOfFilm.numberOfLines = 0
-        yearOfFilm.textColor = .black
+        yearLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        yearLabel.numberOfLines = 0
+        yearLabel.textColor = .black
         
-        durationOfFilm.font = .systemFont(ofSize: 16, weight: .semibold)
-        durationOfFilm.text = "Продолжительность\nвремя_мин."
-        durationOfFilm.numberOfLines = 0
-        durationOfFilm.textColor = .black
+        lengthOfFilmLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        lengthOfFilmLabel.numberOfLines = 0
+        lengthOfFilmLabel.textColor = .black
     }
     
     private func configureStackViews() {
@@ -95,7 +121,7 @@ class SecondViewController: UIViewController {
     
     private func configureConstraints() {
         labelStackView.addArrangedSubview(kinopoiskLabel)
-        labelStackView.addArrangedSubview(rateKinopoLabel)
+        labelStackView.addArrangedSubview(rateKinopoisk)
         labelStackView.addArrangedSubview(imdbLabel)
         labelStackView.addArrangedSubview(rateImdb)
         mainStackView.addArrangedSubview(imageFilm)
@@ -103,17 +129,17 @@ class SecondViewController: UIViewController {
         view.addSubview(mainStackView)
         view.addSubview(titleOfFilmRu)
         view.addSubview(titleOfFilmEn)
-        view.addSubview(descripFilmLabel)
-        view.addSubview(yearOfFilm)
-        view.addSubview(durationOfFilm)
+        view.addSubview(textView)
+        view.addSubview(yearLabel)
+        view.addSubview(lengthOfFilmLabel)
         
         mainStackView.translatesAutoresizingMaskIntoConstraints = false
         imageFilm.translatesAutoresizingMaskIntoConstraints = false
         titleOfFilmRu.translatesAutoresizingMaskIntoConstraints = false
         titleOfFilmEn.translatesAutoresizingMaskIntoConstraints = false
-        descripFilmLabel.translatesAutoresizingMaskIntoConstraints = false
-        yearOfFilm.translatesAutoresizingMaskIntoConstraints = false
-        durationOfFilm.translatesAutoresizingMaskIntoConstraints = false
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        yearLabel.translatesAutoresizingMaskIntoConstraints = false
+        lengthOfFilmLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             mainStackView.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 30),
@@ -125,22 +151,46 @@ class SecondViewController: UIViewController {
             
             titleOfFilmRu.topAnchor.constraint(equalTo: mainStackView.bottomAnchor, constant: 30),
             titleOfFilmRu.centerXAnchor.constraint(equalTo: mainStackView.centerXAnchor),
+            titleOfFilmRu.widthAnchor.constraint(equalTo: mainStackView.widthAnchor),
 
             titleOfFilmEn.topAnchor.constraint(equalTo: titleOfFilmRu.bottomAnchor, constant: 15),
             titleOfFilmEn.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            lengthOfFilmLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -15),
+            lengthOfFilmLabel.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 30),
+            lengthOfFilmLabel.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -30),
 
-            descripFilmLabel.topAnchor.constraint(equalTo: titleOfFilmEn.bottomAnchor, constant: 30),
-            descripFilmLabel.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 30),
-            descripFilmLabel.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -30),
+            yearLabel.bottomAnchor.constraint(equalTo: lengthOfFilmLabel.topAnchor, constant: -30),
+            yearLabel.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 30),
+            yearLabel.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -30),
 
-            yearOfFilm.topAnchor.constraint(equalTo: descripFilmLabel.bottomAnchor, constant: 30),
-            yearOfFilm.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 30),
-            yearOfFilm.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -30),
-
-            durationOfFilm.topAnchor.constraint(equalTo: yearOfFilm.bottomAnchor, constant: 15),
-            durationOfFilm.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 30),
-            durationOfFilm.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -30),
+            textView.topAnchor.constraint(equalTo: titleOfFilmEn.bottomAnchor, constant: 30),
+            textView.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 30),
+            textView.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -30),
+            textView.bottomAnchor.constraint(equalTo: yearLabel.topAnchor, constant: -30),
         ])
+    }
+    
+    // MARK: - Download Image by URL
+    
+    private func getData(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> ()) {
+        URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
+    }
+    private func downloadImage(from url: URL) {
+        print("Download Started")
+        getData(from: url) { data, response, error in
+            guard let data = data, error == nil else { return }
+            print(response?.suggestedFilename ?? url.lastPathComponent)
+            print("Download Finished")
+            // always update the UI from the main thread
+            DispatchQueue.main.async() { [weak self] in
+                self?.imageFilm.image = UIImage(data: data)
+            }
+        }
+    }
+    private func downloadingImageForSecondVC() {
+        let url = URL(string: imageUrl ?? "https://kinopoiskapiunofficial.tech/images/posters/kp/2213.jpg")
+        downloadImage(from: url!)
     }
     
 }
