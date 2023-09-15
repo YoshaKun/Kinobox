@@ -9,26 +9,33 @@ import UIKit
 import CoreData
 import SnapKit
 
+// MARK: - Keys for UserDefaults
+enum Keys {
+    static let indexOfSegmentedControl = "indexOfSegmentedControl"
+}
+
 class FirstViewController: UIViewController {
     
     private let persistentConteiner = NSPersistentContainer(name: "Model")
     
+    // MARK: - varible for UserDefaults
+    private var savedStateOfSort: Int = 0
+    
+    // MARK: - Константа fetchRequest
+    private let fetchRequest = Artist.fetchRequest()
+    
+    // MARK: - TableView
     private var mainTableView = UITableView(frame: CGRect.zero, style: UITableView.Style.grouped)
+    
+    // MARK: - переключатель соритровки SegmentedControl
     private var namesOfSegments: [String] = ["A-Z", "Z-A"]
-
     private lazy var segmentedControl: UISegmentedControl = {
         let seg = UISegmentedControl(items: namesOfSegments)
                 return seg
     }()
     
-    private lazy var fetchedResultsController: NSFetchedResultsController<Artist> = {
-        let fetchRequest = Artist.fetchRequest()
-        let sortDescriptor = NSSortDescriptor(key: "secondName", ascending: true)
-        fetchRequest.sortDescriptors = [sortDescriptor]
-        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.persistentConteiner.viewContext, sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController.delegate = self
-        return fetchedResultsController
-    }()
+    // MARK: - fetchedResultsController
+    private var fetchedResultsController = NSFetchedResultsController<Artist>()
     
     var artist: Artist?
     
@@ -36,10 +43,8 @@ class FirstViewController: UIViewController {
         mainTableView.reloadData()
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        persistentConteiner.loadPersistentStores { (persistentStoreDescription, error) in
+    private func loadPersistentConteiner() {
+        self.persistentConteiner.loadPersistentStores { (persistentStoreDescription, error) in
             if let error = error {
                 print("Unable to Load Persistent Store")
                 print("\(error), \(error.localizedDescription)")
@@ -52,13 +57,69 @@ class FirstViewController: UIViewController {
                 }
             }
         }
-        
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
         view.backgroundColor = .white
+        
+        fetchUpSortResults()
+        loadPersistentConteiner()
+        
+        savedStateOfSort = UserDefaults.standard.integer(forKey: Keys.indexOfSegmentedControl)
+        print("savedStateOfSort = \(String(describing: savedStateOfSort))")
         
         configureViews()
         configureConstraints()
+        sortingTableView(by: savedStateOfSort)
     }
     
+    // MARK: - Функции для разной сортировки по фамилии исполнителя (от А до Я и наоборот)
+    private func fetchUpSortResults() {
+        let upSortDescriptor = NSSortDescriptor(key: "secondName", ascending: true)
+        fetchRequest.sortDescriptors = [upSortDescriptor]
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.persistentConteiner.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController.delegate = self
+    }
+    private func fetchDownSortResults() {
+        let downSortDescriptor = NSSortDescriptor(key: "secondName", ascending: false)
+        fetchRequest.sortDescriptors = [downSortDescriptor]
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.persistentConteiner.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController.delegate = self
+    }
+    
+    // MARK: - Метод сортировки полученных данных из CoreData с помощью SortDescriptors
+    private func sortingTableView(by index: Int) {
+        switch index {
+        case 0:
+            fetchUpSortResults()
+            do {
+                try self.fetchedResultsController.performFetch()
+                print("выбран сегмент с индексом \(String(describing: savedStateOfSort))")
+            } catch {
+                print(error)
+            }
+            savedStateOfSort = 0
+            print("сохранен индекс \(String(describing: savedStateOfSort))")
+            UserDefaults.standard.set(savedStateOfSort, forKey: Keys.indexOfSegmentedControl)
+        case 1:
+            fetchDownSortResults()
+            do {
+                try self.fetchedResultsController.performFetch()
+                print("выбран сегмент с индексом \(String(describing: savedStateOfSort))")
+            } catch {
+                print(error)
+            }
+            savedStateOfSort = 1
+            print("сохранен индекс \(String(describing: savedStateOfSort))")
+            UserDefaults.standard.set(savedStateOfSort, forKey: Keys.indexOfSegmentedControl)
+        default:
+            print("error switch segmentedControl")
+        }
+        self.mainTableView.reloadData()
+    }
+    
+    // MARK: - Configure views and consstraints
     private func configureViews() {
         navigationItem.title = "Artists"
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Create", style: .plain, target: self, action: #selector(didTappedOnCreate))
@@ -88,7 +149,8 @@ class FirstViewController: UIViewController {
             make.bottom.equalTo(-30)
         }
     }
-    
+        
+    // MARK: - @objc functions for Button's actions
     @objc func didTappedOnCreate() {
         artist = Artist.init(entity: NSEntityDescription.entity(forEntityName: "Artist", in: persistentConteiner.viewContext)!, insertInto: persistentConteiner.viewContext)
         mainTableView.reloadData()
@@ -96,16 +158,7 @@ class FirstViewController: UIViewController {
     }
     
     @objc func didTappedOnSegment() {
-        switch segmentedControl.selectedSegmentIndex {
-        case 0:
-            view.backgroundColor = .yellow
-        case 1:
-            view.backgroundColor = .cyan
-        default:
-            print("error switch segmentedControl")
-        }
-        self.mainTableView.reloadData()
-        
+        sortingTableView(by: segmentedControl.selectedSegmentIndex)
     }
 }
 
