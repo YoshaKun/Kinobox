@@ -8,25 +8,22 @@
 import UIKit
 import SnapKit
 
-protocol FirstViewControllerProtocol: AnyObject {
-    func getTableView() -> UITableView
-    func reloadTableView()
-}
-
 class FirstViewController: UIViewController, UISearchBarDelegate {
 
-    private let presenter: FirstPresenterProtocol = FirstPresenter()
-    private let secondPresenter: SecondPresenterProtocol = SecondPresenter()
     private let customCell = "customCell"
     private let searchBar = UISearchBar()
     private let findButton = UIButton()
-    private let updateButton = UIButton()
+    
+    private var viewModel: FirstViewModelProtocol = FirstViewModel()
     
     private var mainTableView = UITableView(frame: CGRect.zero, style: UITableView.Style.grouped)
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
+        viewModel.updateView = { [weak self] in
+            self?.mainTableView.reloadData()
+        }
         
         searchBar.delegate = self
         configureViews()
@@ -76,22 +73,12 @@ class FirstViewController: UIViewController, UISearchBarDelegate {
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
-        presenter.getFilms(text: searchText)
+        viewModel.getFilms(text: searchText)
     }
     
     @objc private func didTappedOnFindButton() {
-
-        reloadTableView()
-    }
-}
-
-extension FirstViewController: FirstViewControllerProtocol {
-    
-    func getTableView() -> UITableView {
-        return mainTableView
-    }
-    
-    func reloadTableView() {
+        
+        let textFromSearchBar = searchBar.text ?? "Форсаж"
         mainTableView.reloadData()
     }
 }
@@ -99,16 +86,16 @@ extension FirstViewController: FirstViewControllerProtocol {
 extension FirstViewController: UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return presenter.numberOfSections()
+        return viewModel.numberOfSections
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return presenter.numberOfRowInSection(section)
+        return viewModel.numberOfRowsInSection(section)
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: customCell) as? CustomCell
-        let viewModel = presenter.getModelArray(index: indexPath.row)
+        let viewModel = viewModel.getModelArray(index: indexPath.row)
         cell?.configureCell(viewModel)
         cell?.backgroundColor = .white
         return cell ?? UITableViewCell()
@@ -116,9 +103,9 @@ extension FirstViewController: UITableViewDataSource {
 }
 
 extension FirstViewController: UITableViewDelegate {
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let viewModel = presenter.getModelArray(index: indexPath.row)
+        let viewModel = viewModel.getModelArray(index: indexPath.row)
         let vc = SecondViewController(titleOfFilmRu: viewModel.nameRu, imageFilm: viewModel.posterUrl, descripFilmLabel: viewModel.description)
         
         navigationController?.present(vc, animated: true, completion: nil)
